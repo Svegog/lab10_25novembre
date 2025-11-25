@@ -2,7 +2,8 @@ package it.unibo.oop.lab.lambda;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,11 +63,9 @@ public final class LambdaUtilities {
         /*
          * Suggestion: consider Optional.filter
          */
+        // return list.stream().map(Optional::ofNullable).map(it -> it.filter(pre)).toList() 
         final List<Optional<T>> l = new ArrayList<>(list.size());
-        list.forEach(t -> {
-            final var opT = Optional.of(t);
-            l.add(opT.filter(pre));
-        });
+        list.forEach(t -> l.add(Optional.ofNullable(t).filter(pre)));
         return l;
     }
 
@@ -86,15 +85,16 @@ public final class LambdaUtilities {
         /*
          * Suggestion: consider Map.merge
          */
-        final Map<R, Set<T>> m = new HashMap<>();
+        final Map<R, Set<T>> m = new LinkedHashMap<>();
         list.forEach(t -> {
-           m.merge(
-            op.apply(t),
-                new HashSet<>(Set.of(t)),
-                    (oldSet, newSet) -> { 
-                        oldSet.addAll(newSet); 
-                        return oldSet; 
-                    }
+            m.merge(
+                op.apply(t),
+                Set.of(t),
+                (oldSet, newSet) -> {
+                    final var result = new LinkedHashSet<>(oldSet);
+                    result.addAll(newSet); 
+                    return result; 
+                }
             );
         });
         return m;
@@ -119,14 +119,8 @@ public final class LambdaUtilities {
          * Keep in mind that a map can be iterated through its forEach method
          */
         final Map<K, V> m = new HashMap<>();
-        map.forEach((k, v) -> {
-            final var elem = map.get(k);
-            if (elem.isPresent()) {
-                m.put(k, elem.get());
-            } else {
-                m.put(k, def.get());
-            }
-        });
+        map.forEach((k, v) -> m.put(k, v.orElseGet(def))
+        );
         return m;
     }
 
