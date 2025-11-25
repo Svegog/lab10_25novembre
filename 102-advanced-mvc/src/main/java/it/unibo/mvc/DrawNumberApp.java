@@ -1,15 +1,25 @@
 package it.unibo.mvc;
 
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.util.Arrays;
 import java.util.List;
 
 /**
  */
 public final class DrawNumberApp implements DrawNumberViewObserver {
-    private static final int MIN = 0;
-    private static final int MAX = 100;
-    private static final int ATTEMPTS = 10;
+    
+    private static final String SEP = File.separator;
+    private static final String PATH = "src" + SEP + "main" + SEP + "resources" + SEP + "config.yml";
+
+    /*
+     * Adding start value to not get error from compiler.
+     */
+    private int min = 0;
+    private int max = 100;
+    private int attempts = 0;
 
     private final DrawNumber model;
     private final List<DrawNumberView> views;
@@ -20,14 +30,48 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
      */
     public DrawNumberApp(final DrawNumberView... views) {
         /*
-         * Side-effect proof
+         * Read from files start.
          */
+        try (BufferedReader br = new BufferedReader(
+                new FileReader(PATH)
+            );
+        ) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                final String[] component = line.split(":");
+
+                if (component.length == 2) {
+                    final String key = component[0].trim();
+                    final int value = Integer.parseInt(component[1].trim());
+
+                    // System.out.println("PRINT DI TEST: "+ key + " = " + value);
+                    switch (key) {
+                        case "minimum":
+                            this.min = value;
+                            break;
+                        case "maximum":
+                            this.max = value;
+                            break;
+                        case "attempts":
+                            this.attempts = value;
+                            break;
+                        default:
+                            throw new IllegalStateException("An error occured while reading the file");
+                    }
+                }
+
+            } 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         this.views = Arrays.asList(Arrays.copyOf(views, views.length));
         for (final DrawNumberView view: views) {
             view.setObserver(this);
             view.start();
         }
-        this.model = new DrawNumberImpl(MIN, MAX, ATTEMPTS);
+
+        this.model = new DrawNumberImpl(min,max,attempts);
     }
 
     @Override
@@ -66,7 +110,7 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
      * @throws FileNotFoundException 
      */
     public static void main(final String... args) throws FileNotFoundException {
-        new DrawNumberApp(new DrawNumberViewImpl());
+        new DrawNumberApp(new DrawNumberViewImpl(), new DrawNumberViewImpl());
     }
 
 }
