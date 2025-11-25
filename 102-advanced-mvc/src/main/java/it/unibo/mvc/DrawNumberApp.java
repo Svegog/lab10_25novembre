@@ -13,6 +13,7 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
     
     private static final String SEP = File.separator;
     private static final String PATH = "src" + SEP + "main" + SEP + "resources" + SEP + "config.yml";
+    private static final String PATH_FILE = "src" + SEP + "main" + SEP + "resources" + SEP + "output.txt";
 
     /*
      * Adding start value to not get error from compiler.
@@ -44,7 +45,6 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
                     final String key = component[0].trim();
                     final int value = Integer.parseInt(component[1].trim());
 
-                    // System.out.println("PRINT DI TEST: "+ key + " = " + value);
                     switch (key) {
                         case "minimum":
                             this.min = value;
@@ -110,7 +110,12 @@ public final class DrawNumberApp implements DrawNumberViewObserver {
      * @throws FileNotFoundException 
      */
     public static void main(final String... args) throws FileNotFoundException {
-        new DrawNumberApp(new DrawNumberViewImpl(), new DrawNumberViewImpl());
+        new DrawNumberApp(
+            new DrawNumberViewImpl(), 
+            new DrawNumberViewImpl(), 
+            new PrintStreamView(PATH_FILE),
+            new PrintStreamView(System.out)
+        );
     }
 
 }
